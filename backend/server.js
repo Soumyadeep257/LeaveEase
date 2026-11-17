@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
+import { verifyEmailConnection } from './utils/emailService.js';
 
 // Route imports
 import authRoutes from './routes/authRoutes.js';
@@ -17,6 +18,9 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 // Connect to MongoDB Database
 connectDB();
+
+// Verify Email SMTP Connection
+verifyEmailConnection();
 
 const app = express();
 
