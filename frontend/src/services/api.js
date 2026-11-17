@@ -13,7 +13,8 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('leaveEase_token');
-    if (token) {
+    // Only attach token if it's a valid JWT format (contains dots)
+    if (token && token.includes('.')) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -25,10 +26,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    const isAuthEndpoint = error.config?.url?.includes('/auth/login') || 
+                           error.config?.url?.includes('/auth/register') ||
+                           error.config?.url?.includes('/auth/demo');
+
+    if (error.response && error.response.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('leaveEase_token');
       localStorage.removeItem('leaveEase_user');
-      // If unauthorized, redirect to login
       if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
         window.location.href = '/login';
       }
@@ -41,6 +45,7 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
+  demoLogin: (role) => api.post('/auth/demo', { role }),
   getProfile: () => api.get('/auth/profile'),
 };
 

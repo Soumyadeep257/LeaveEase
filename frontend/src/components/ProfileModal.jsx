@@ -28,11 +28,13 @@ const ProfileModal = ({ isOpen, onClose }) => {
     navigate('/login');
   };
 
-  const handleSwitchRole = () => {
+  const handleSwitchRole = async () => {
     const targetRole = user?.role === 'manager' ? 'employee' : 'manager';
-    loginAsDemo(targetRole);
+    const result = await loginAsDemo(targetRole);
     onClose();
-    navigate(`/${targetRole}/dashboard`);
+    if (result?.success) {
+      navigate(`/${targetRole}/dashboard`);
+    }
   };
 
   const balance = user.leaveBalance || { casual: 8, sick: 6, earned: 14 };

@@ -22,10 +22,12 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const handleSwitchRole = () => {
+  const handleSwitchRole = async () => {
     const targetRole = user?.role === 'manager' ? 'employee' : 'manager';
-    loginAsDemo(targetRole);
-    navigate(`/${targetRole}/dashboard`);
+    const result = await loginAsDemo(targetRole);
+    if (result?.success) {
+      navigate(`/${targetRole}/dashboard`);
+    }
   };
 
   return (

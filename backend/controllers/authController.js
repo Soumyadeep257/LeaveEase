@@ -23,20 +23,23 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required fields (name, email, password)' });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
     // Check if user already exists
-    const userExists = await User.findOne({ email: email.toLowerCase() });
+    const userExists = await User.findOne({ email: email.toLowerCase().trim() });
     if (userExists) {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
 
     // Create user
     const user = await User.create({
-      name,
-      email: email.toLowerCase(),
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       password,
       role: role || 'employee',
       department: department || 'Engineering',
-      // Default leave balances
       leaveBalance: {
         casual: 12,
         sick: 10,
@@ -85,7 +88,7 @@ export const loginUser = async (req, res) => {
     }
 
     // Explicitly select password field since schema has select: false
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
 
     if (user && (await user.matchPassword(password))) {
       res.json({
@@ -106,6 +109,49 @@ export const loginUser = async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: error.message || 'Server error during login' });
+  }
+};
+
+/**
+ * @desc    Quick demo login for instant evaluation (auto-creates demo accounts in MongoDB)
+ * @route   POST /api/auth/demo
+ * @access  Public
+ */
+export const demoLogin = async (req, res) => {
+  try {
+    const { role } = req.body;
+    const targetRole = role === 'manager' ? 'manager' : 'employee';
+    const demoEmail = targetRole === 'manager' ? 'sarah.manager@leaveease.com' : 'alex@leaveease.com';
+    const demoName = targetRole === 'manager' ? 'Sarah Jenkins' : 'Alex Morgan';
+
+    let user = await User.findOne({ email: demoEmail });
+    if (!user) {
+      user = await User.create({
+        name: demoName,
+        email: demoEmail,
+        password: 'password123',
+        role: targetRole,
+        department: 'Engineering',
+        leaveBalance: { casual: 8, sick: 6, earned: 14 },
+        totalQuota: { casual: 12, sick: 10, earned: 18 },
+      });
+    }
+
+    res.json({
+      token: generateToken(user._id),
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+        leaveBalance: user.leaveBalance,
+        totalQuota: user.totalQuota,
+      },
+    });
+  } catch (error) {
+    console.error('Demo login error:', error);
+    res.status(500).json({ message: error.message || 'Server error during demo login' });
   }
 };
 

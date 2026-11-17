@@ -13,6 +13,11 @@ export const protect = async (req, res, next) => {
   ) {
     try {
       token = req.headers.authorization.split(' ')[1];
+
+      if (!token || token === 'null' || token === 'undefined' || !token.includes('.')) {
+        return res.status(401).json({ message: 'Not authorized, invalid token structure' });
+      }
+
       const decoded = jwt.verify(
         token,
         process.env.JWT_SECRET || 'leaveease_super_secret_jwt_key_sem5_2026'
@@ -27,7 +32,7 @@ export const protect = async (req, res, next) => {
 
       next();
     } catch (error) {
-      console.error('Auth verification error:', error.message);
+      console.warn('Auth token rejected:', error.message);
       return res.status(401).json({ message: 'Not authorized, token invalid or expired' });
     }
   }

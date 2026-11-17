@@ -35,12 +35,24 @@ const Login = () => {
     }
   };
 
-  const handleQuickDemo = (role) => {
-    const demoUser = loginAsDemo(role);
-    if (demoUser.role === 'manager') {
-      navigate('/manager/dashboard');
-    } else {
-      navigate('/employee/dashboard');
+  const handleQuickDemo = async (role) => {
+    setError('');
+    setIsLoading(true);
+    try {
+      const result = await loginAsDemo(role);
+      if (result.success) {
+        if (result.user.role === 'manager') {
+          navigate('/manager/dashboard');
+        } else {
+          navigate('/employee/dashboard');
+        }
+      } else {
+        setError(result.message || 'Demo login failed');
+      }
+    } catch (err) {
+      setError('Could not complete demo login');
+    } finally {
+      setIsLoading(false);
     }
   };
 

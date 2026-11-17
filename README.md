@@ -88,6 +88,7 @@ LeaveEase/
 │   ├── vite.config.js
 │   └── package.json
 │
+├── SRS_DOCUMENTATION.md          # Comprehensive Software Requirements Specification
 └── README.md                     # Project documentation & setup guide
 ```
 
